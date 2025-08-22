@@ -33,16 +33,23 @@ ASM_Main:
 	MOVS R2, #0         	@ NOTE: R2 will be dedicated to holding the value on the LEDs
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
-increment_by_one: @ When this function is called, it increments the LED pattern by one
+increment_by_one:           @ When this function is called, it increments the LED pattern by one
 	ADDS R2, R2, #1
  	B main_loop
 
 increment_by_two: @ When this function is called, it increments the LED pattern by two
-	ADDS R2, R2, #2
-	B main_loop
+	ADDS R2, R
+	B first_return:
 
 main_loop:
-	LDR
+	LDRB R1, [R0, #0x10]     @ Loads the state of buttons 0 to 7 into R1
+	MVN R3, R1               @ Check whether SW0 is pressed
+	MOV R4, #0b00000001
+	ANDS R5, R3, R4
+	CMP R5, #0b00000001
+	BEQ first_return
+
+	back_home:
 	B main_loop
 
 
