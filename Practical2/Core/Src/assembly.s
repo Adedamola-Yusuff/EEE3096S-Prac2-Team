@@ -38,27 +38,29 @@ main_loop:
 	LDRB R3, [R0, #0x10]    @ Loads the state of buttons 0 to 7 into R3 from the IDR every loop cycle. We only care about buttons SW0 to SW3
 	MVN R3, R3              @ Inverts R3. Necessary because a button being pressed sends a logic 0 but it's much easier to work with 1s
 
-	TST R3, #8              @ Checks if SW3 is being pressed. Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
-	BNE freeze              @ Skips all the code that would change the LEDs if SW3 is pressed
+	TST R3, #8              @ Checks bit 3 of the IDR to see if SW3 is being pressed. Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
+	BNE freeze              @ Skips all the code that would change the pattern of the LEDs if SW3 is pressed
 
-    TST R3, #4              @ Checks if SW2 is being pressed
+    TST R3, #4              @ Checks bit 2 of the IDR to see if SW2 is being pressed
     BEQ dont_set_pattern    @ If Z=1, don't set pattern. If Z=0, set pattern
-    MOV R2, 0xAA            @ Sets the pattern of the LEDs
+    MOV R2, #0xAA           @ Sets the pattern of the LEDs
     B write_leds            @ Unconditional branching to write the pattern to the LEDs
 
-dont_set_pattern:
-	TST R3, #1              @ Checks if SW0 Is being pressed
+dont_set_pattern:           @ If the program reaches this point, then the 0xAA pattern was not set
+	TST R3, #1              @ Checks bit 0 of the IDR to see if SW0 Is being pressed
 
 	BEQ increment_by_one    @ This and next three lines increment the pattern by one if SW0 is not pressed and by 2 if SW0 is pressed
 	ADDS R2, R2, #1
 increment_by_one:
 	ADDS R2, R2, #1
 
-	MOV R4, LONG_DELAY_CNT  @ Default delay
-
-	TST R3, #2                @ Checks if SW1 is being pressed
-	MOVNE R4, SHORT_DELAY_CNT @ Changes R4 to the Short delay when SW1 is being pressed
-loop:
+	TST R3, #2              @ Checks if SW1 is being pressed
+    BNE short_delay         @ Makes it so that the loop_delay is going to use SHORT_DELAY_CNT because SW1 is not being pressed
+    LDR R4, LONG_DELAY_CNT  @ If we're here, then we're not using SHORT_DELAY, which means that we want to use LONG_DELAY_CNT
+    B loop_delay            @ Makes sure that we skip short_delay and immediately implement the delay
+short_delay:
+	LDR R4, SHORT_DELAY_CNT
+loop_delay:
 	SUBS R4, #1             @ Implements a delay based on what R4 is
     BNE loop
 	B write_leds            @ Branch to write_leds after completing the loop delay
@@ -67,7 +69,7 @@ freeze:                     @ Go back to main_loop after doing nothing to the LE
 	B main_loop
 
 write_leds:
-	STR R2, [R1, #0x14]     @ Write the modified value of R2 to the GPIOB ODR
+	STRB R2, [R1, #0x14]    @ Write only 8 bits of the modified value of R2 to the GPIOB ODR
 	B main_loop
 
 @ LITERALS; DO NOT EDIT
