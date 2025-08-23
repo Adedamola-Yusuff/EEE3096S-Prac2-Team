@@ -35,21 +35,23 @@ ASM_Main:
 @ TODO: Add code, labels and logic for button checks and LED patterns
 increment_by_one:           @ When this function is called, it increments the LED pattern by one
 	ADDS R2, R2, #1
- 	B main_loop
+ 	BX LR
 
-increment_by_two: @ When this function is called, it increments the LED pattern by two
-	ADDS R2, R
-	B first_return:
+increment_by_two:           @ When this function is called, it increments the LED pattern by two
+	ADDS R2, R2, #2
+	BX LR
 
 main_loop:
-	LDRB R1, [R0, #0x10]     @ Loads the state of buttons 0 to 7 into R1
-	MVN R3, R1               @ Check whether SW0 is pressed
+	LDRB R1, [R0, #0x10]    @ Loads the state of buttons 0 to 7 into R1 from the IDR. We only care about buttons SW0 to SW3
+	MVN R3, R1              @ Check whether SW0 is pressed
 	MOV R4, #0b00000001
 	ANDS R5, R3, R4
 	CMP R5, #0b00000001
-	BEQ first_return
 
-	back_home:
+	BLEQ increment_by_two   @ Go to the the increment_by_two function if SW0 is pressed and then come back to this point in the main_loop
+
+	BLNE increment_by_one   @ Go to the increment_by_one function if SW0 is not pressed and then come back to this point in the main loop
+
 	B main_loop
 
 
