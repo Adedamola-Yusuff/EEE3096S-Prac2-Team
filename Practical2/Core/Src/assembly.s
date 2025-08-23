@@ -35,8 +35,8 @@ ASM_Main:
 @ TODO: Add code, labels and logic for button checks and LED patterns
 
 main_loop:
-	LDRB R3, [R0, #0x10]    @ Loads the state of buttons 0 to 7 into R3 from the IDR every loop cycle. We only care about buttons SW0 to SW3
-	MVN R3, R3              @ Inverts R3. Necessary because a button being pressed sends a logic 0 but it's much easier to work with 1s
+	LDRB R3, [R0, #0x10]    @ Loads the state of bits 0 to 7 into R3 from the IDR every loop cycle. We only care about buttons SW0 to SW3 though
+	MVNS R3, R3             @ Inverts R3. Necessary because a button being pressed sends a logic 0 but it's much easier to work with 1s
 
 	TST R3, #8              @ Checks bit 3 of the IDR to see if SW3 is being pressed. Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
 	BNE freeze              @ Skips all the code that would change the pattern of the LEDs if SW3 is pressed
@@ -62,7 +62,7 @@ short_delay:
 	LDR R4, SHORT_DELAY_CNT
 loop_delay:
 	SUBS R4, #1             @ Implements a delay based on what R4 is
-    BNE loop
+    BNE loop_delay
 	B write_leds            @ Branch to write_leds after completing the loop delay
 
 freeze:                     @ Go back to main_loop after doing nothing to the LEDs
@@ -81,5 +81,5 @@ GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
 
 @ TODO: Add your own values for these delays
-LONG_DELAY_CNT: 	.word 0.7
-SHORT_DELAY_CNT: 	.word 0.3
+LONG_DELAY_CNT: 	.word 1399995
+SHORT_DELAY_CNT: 	.word 599995
