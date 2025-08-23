@@ -36,15 +36,27 @@ ASM_Main:
 
 main_loop:
 	LDRB R3, [R0, #0x10]    @ Loads the state of buttons 0 to 7 into R3 from the IDR every loop cycle. We only care about buttons SW0 to SW3
-	MVN R4, R3              @ This and next two lines check whether SW0 is pressed
-	TST R4, #1              @ Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
+	MVN R3, R3              @ Inverts R3. Necessary because a button being pressed sends a logic 0 but it's much easier to work with 1s
+
+	TST R3, #8              @ Checks if SW3 is being pressed
+	BNE freeze              @ Skips all the code that would change the LEDs if SW3 is pressed
+
+    TST R3, #4
+
+
+	TST R3, #1              @ Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
 
 	BEQ increment_by_one    @ This and next three lines increment the pattern by one if SW0 is not pressed and by 2 if SW0 is pressed
 	ADDS R2, R2, #1
 increment_by_one:
 	ADDS R2, R2, #1
 
+	TST R3, #3
+
 	B write_leds            @ Update the pattern displayed by the LEDS
+
+freeze:                     @ Go back to main_loop after doing nothing to the LEDs
+	B main_loop
 
 write_leds:
 	STR R2, [R1, #0x14]     @ Write the modified value of R2 to the GPIOB ODR
