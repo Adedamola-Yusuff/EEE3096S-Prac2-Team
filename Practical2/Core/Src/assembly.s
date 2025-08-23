@@ -54,12 +54,14 @@ dont_set_pattern:
 increment_by_one:
 	ADDS R2, R2, #1
 
-	TST R3, #2              @ Checks if SW1 is being pressed
-	B
-fast_loop:
-    B write_leds
-slow_loop:
-	B write_leds
+	MOV R4, LONG_DELAY_CNT  @ Default delay
+
+	TST R3, #2                @ Checks if SW1 is being pressed
+	MOVNE R4, SHORT_DELAY_CNT @ Changes R4 to the Short delay when SW1 is being pressed
+loop:
+	SUBS R4, #1             @ Implements a delay based on what R4 is
+    BNE loop
+	B write_leds            @ Branch to write_leds after completing the loop delay
 
 freeze:                     @ Go back to main_loop after doing nothing to the LEDs
 	B main_loop
