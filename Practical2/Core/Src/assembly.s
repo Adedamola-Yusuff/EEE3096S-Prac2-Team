@@ -40,7 +40,7 @@ main_loop:
 
 	MOVS R5, #8             @ Because "TST R3, #imm" is not supported, we need to go about the comparison of R3 with a mask in this way (TST can only compare registers it seems)
 	TST R3, R5              @ Checks bit 3 of the IDR to see if SW3 is being pressed. Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
-	BNE freeze              @ Skips all the code that would change the pattern of the LEDs if SW3 is pressed
+	BNE main_loop           @ Skips all the code that would change the pattern of the LEDs if SW3 is pressed
 
 	MOVS R5, #4
     TST R3, R5              @ Checks bit 2 of the IDR to see if SW2 is being pressed
@@ -67,10 +67,8 @@ short_delay:
 loop_delay:
 	SUBS R4, #1             @ Implements a delay based on what R4 is
     BNE loop_delay
-	B write_leds            @ Branch to write_leds after completing the loop delay
 
-freeze:                     @ Go back to main_loop after doing nothing to the LEDs
-	B main_loop
+	B write_leds            @ Branch to write_leds after completing the loop delay
 
 write_leds:
 	STRB R2, [R1, #0x14]    @ Write only 8 bits of the modified value of R2 to the GPIOB ODR
@@ -85,5 +83,5 @@ GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
 
 @ TODO: Add your own values for these delays
-LONG_DELAY_CNT: 	.word 1399995
-SHORT_DELAY_CNT: 	.word 599995
+LONG_DELAY_CNT: 	.word 1400000
+SHORT_DELAY_CNT: 	.word 600000
