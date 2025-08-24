@@ -38,18 +38,18 @@ main_loop:
 	LDRB R3, [R0, #0x10]    @ Loads the state of bits 0 to 7 into R3 from the IDR every loop cycle. We only care about buttons SW0 to SW3 though
 	MVNS R3, R3             @ Inverts R3. Necessary because a button being pressed sends a logic 0 but it's much easier to work with 1s
 
-	MOVS R5, #8              @ New line
+	MOVS R5, #8             @ Because "TST R3, #imm" is not supported, we need to go about the comparison of R3 with a mask in this way (TST can only compare registers it seems)
 	TST R3, R5              @ Checks bit 3 of the IDR to see if SW3 is being pressed. Sets Z flag to 0 (ANDS result = 0b00000001) if SW0 is pressed and Z flag to 1 (ANDS result = 0b00000000) if SW0 isn't pressed
 	BNE freeze              @ Skips all the code that would change the pattern of the LEDs if SW3 is pressed
 
-	MOVS R5, #4              @ New line
+	MOVS R5, #4
     TST R3, R5              @ Checks bit 2 of the IDR to see if SW2 is being pressed
     BEQ dont_set_pattern    @ If Z=1, don't set pattern. If Z=0, set pattern
-    MOVS R2, #0xAA     @ Sets the pattern of the LEDs
+    MOVS R2, #0xAA          @ Sets the pattern of the LEDs
     B write_leds            @ Unconditional branching to write the pattern to the LEDs
 
 dont_set_pattern:           @ If the program reaches this point, then the 0xAA pattern was not set
-	MOVS R5, #1              @ New line
+	MOVS R5, #1
 	TST R3, R5              @ Checks bit 0 of the IDR to see if SW0 Is being pressed
 
 	BEQ increment_by_one    @ This and next three lines increment the pattern by one if SW0 is not pressed and by 2 if SW0 is pressed
